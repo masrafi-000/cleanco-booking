@@ -1,0 +1,21 @@
+/* CleanCo Booking — Admin Styles */
+.ccb-admin h1 { color:#212121; }
+.ccb-admin-card {
+  background:#fff; border:1px solid #E0E0E0; border-radius:10px;
+  padding:20px 24px; margin-bottom:20px;
+}
+.ccb-admin-card h3 { margin-top:0; font-size:1rem; color:#212121; }
+.ccb-filter-tabs { display:flex; gap:4px; flex-wrap:wrap; }
+.ccb-ftab-admin {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:6px 14px; border:1px solid #D9D9D9; border-radius:6px;
+  text-decoration:none; font-size:.82rem; color:#424242; background:#fff;
+}
+.ccb-ftab-admin:hover, .ccb-ftab-admin.active {
+  background:#F57C00; color:#fff; border-color:#E65100;
+}
+.ccb-ftab-admin .count {
+  background:rgba(255,255,255,.25); border-radius:10px;
+  padding:1px 6px; font-size:.7rem;
+}
+.ccb-ftab-admin.active .count { background:rgba(255,255,255,.3); }
