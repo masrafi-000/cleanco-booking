@@ -3,7 +3,7 @@
  * Plugin Name: CleanCo Booking 
  * Plugin URI:  https://example.com/cleanco-booking
  * Description: Multi-step cleaning service booking form with Stripe payments, database storage, and email notifications.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      CleanCo
  * License:     GPL-2.0+
  * Text Domain: cleanco-booking
