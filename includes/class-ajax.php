@@ -141,6 +141,15 @@ class CCB_Ajax {
             wp_send_json_error( [ 'message' => 'Missing required parameters.' ] );
         }
 
+        $current_booking = CCB_Database::get_booking( $booking_id );
+        
+        if ( $current_booking && $current_booking->status === 'paid' ) {
+            wp_send_json_success( [
+                'message'     => 'Booking confirmed!',
+                'booking_ref' => $current_booking->booking_ref,
+            ] );
+        }
+
         $pi        = CCB_Stripe::retrieve_payment_intent( $pi_id );
         $db_status = ( ! is_wp_error( $pi ) && isset( $pi['status'] ) && $pi['status'] === 'succeeded' )
                      ? 'paid' : 'pending';
@@ -152,7 +161,7 @@ class CCB_Ajax {
 
         $booking = CCB_Database::get_booking( $booking_id );
 
-        if ( $booking && $booking->status === 'paid' ) {
+        if ( $booking && $db_status === 'paid' ) {
             CCB_Email::send_customer( (array) $booking );
             CCB_Email::send_admin(    (array) $booking );
         }

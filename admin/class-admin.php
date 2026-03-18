@@ -7,6 +7,8 @@ class CCB_Admin {
         add_action( 'admin_menu',  [ __CLASS__, 'add_menus' ] );
         add_action( 'admin_init',  [ __CLASS__, 'register_settings' ] );
         add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_admin' ] );
+        add_action( 'update_option_ccb_stripe_secret_key', [ 'CCB_Stripe', 'setup_webhook' ] );
+        add_action( 'add_option_ccb_stripe_secret_key', [ 'CCB_Stripe', 'setup_webhook' ] );
     }
 
     /* ── Menus ── */
@@ -36,7 +38,6 @@ class CCB_Admin {
         $settings = [
             'ccb_stripe_publishable_key' => '',
             'ccb_stripe_secret_key'      => '',
-            'ccb_stripe_webhook_secret'  => '',
             'ccb_stripe_test_mode'       => 1,
             'ccb_admin_email'            => get_option( 'admin_email' ),
             'ccb_from_name'              => get_bloginfo( 'name' ),
@@ -286,11 +287,13 @@ class CCB_Admin {
         }
 
         if ( isset( $_GET['settings-updated'] ) ) {
+            if ( get_option( 'ccb_stripe_secret_key' ) && ! get_option( 'ccb_stripe_webhook_secret' ) ) {
+                CCB_Stripe::setup_webhook();
+            }
             echo '<div class="notice notice-success"><p>Settings saved.</p></div>';
         }
         $pk   = get_option( 'ccb_stripe_publishable_key', '' );
         $sk   = get_option( 'ccb_stripe_secret_key', '' );
-        $whs  = get_option( 'ccb_stripe_webhook_secret', '' );
         $test = get_option( 'ccb_stripe_test_mode', 1 );
         $ae   = get_option( 'ccb_admin_email', get_option( 'admin_email' ) );
         $fn   = get_option( 'ccb_from_name',  get_bloginfo( 'name' ) );
@@ -329,13 +332,15 @@ class CCB_Admin {
                   </td>
                 </tr>
                 <tr>
-                  <th scope="row">Webhook Secret</th>
+                  <th scope="row">Webhook Status</th>
                   <td>
-                    <input type="password" name="ccb_stripe_webhook_secret" value="<?= esc_attr( $whs ) ?>" class="regular-text" placeholder="whsec_…">
+                    <?php if ( get_option( 'ccb_stripe_webhook_secret' ) ) : ?>
+                      <span style="color:#2E7D32;font-weight:600">✅ Configured Automatically</span>
+                    <?php else : ?>
+                      <span style="color:#C62828;font-weight:600">⚠️ Not Configured (Save settings with a valid Secret Key to configure)</span>
+                    <?php endif; ?>
                     <p class="description">
-                      Webhook endpoint URL: <code style="background:#f0f0f0;padding:3px 8px;border-radius:4px"><?= esc_url( $wh_url ) ?></code><br>
-                      Add this URL in <a href="https://dashboard.stripe.com/webhooks" target="_blank">Stripe Dashboard → Webhooks</a>.
-                      Listen for <code>payment_intent.succeeded</code> and <code>payment_intent.payment_failed</code>.
+                      The webhook endpoint (<code><?= esc_url( $wh_url ) ?></code>) is configured automatically when you save a valid Secret Key.
                     </p>
                   </td>
                 </tr>
@@ -376,9 +381,7 @@ class CCB_Admin {
             <ol style="font-size:.9rem;line-height:2">
               <li>Create a <strong>Stripe account</strong> at <a href="https://stripe.com" target="_blank">stripe.com</a></li>
               <li>Copy your <strong>Publishable</strong> and <strong>Secret keys</strong> from the Stripe Dashboard</li>
-              <li>Add the <strong>Webhook URL</strong> in Stripe → Developers → Webhooks</li>
-              <li>Select events: <code>payment_intent.succeeded</code>, <code>payment_intent.payment_failed</code></li>
-              <li>Copy the <strong>Webhook Signing Secret</strong> and paste it above</li>
+              <li>Your Webhook is <strong>automatically configured</strong> when you save your Secret Key!</li>
               <li>Install <strong>WP Mail SMTP</strong> and configure Gmail SMTP for reliable email</li>
               <li>Create a WordPress page and add the shortcode: <code>[cleanco_booking]</code></li>
               <li>Switch to <strong>Live Mode</strong> when ready to accept real payments</li>

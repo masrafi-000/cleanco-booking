@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: CleanCo Booking
+ * Plugin Name: CleanCo Booking 
  * Plugin URI:  https://example.com/cleanco-booking
  * Description: Multi-step cleaning service booking form with Stripe payments, database storage, and email notifications.
  * Version:     1.0.0

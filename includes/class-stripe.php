@@ -143,4 +143,48 @@ class CCB_Stripe {
         $event = json_decode( $payload, true );
         return $event ?: new WP_Error( 'ccb_webhook_parse', 'Could not parse webhook payload.' );
     }
+
+    /**
+     * Set up Stripe webhook automatically.
+     */
+    public static function setup_webhook() {
+        $key = self::secret_key();
+        if ( ! $key ) return;
+
+        $wh_url = rest_url( 'cleanco-booking/v1/webhook' );
+
+        // 1. List webhooks
+        $endpoints = self::request( 'GET', '/webhook_endpoints' );
+        if ( is_wp_error( $endpoints ) ) {
+            return;
+        }
+
+        $found_id = null;
+        if ( ! empty( $endpoints['data'] ) ) {
+            foreach ( $endpoints['data'] as $ep ) {
+                if ( $ep['url'] === $wh_url ) {
+                    $found_id = $ep['id'];
+                    break;
+                }
+            }
+        }
+
+        // 2. If found, delete it to get a new secret
+        if ( $found_id ) {
+            self::request( 'DELETE', '/webhook_endpoints/' . $found_id );
+        }
+
+        // 3. Create new webhook
+        $body = [
+            'url' => $wh_url,
+            'enabled_events[0]' => 'payment_intent.succeeded',
+            'enabled_events[1]' => 'payment_intent.payment_failed',
+        ];
+
+        $created = self::request( 'POST', '/webhook_endpoints', $body );
+
+        if ( ! is_wp_error( $created ) && ! empty( $created['secret'] ) ) {
+            update_option( 'ccb_stripe_webhook_secret', $created['secret'] );
+        }
+    }
 }
